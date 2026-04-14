@@ -226,6 +226,14 @@ reader_t *setup_reader(const char *const trace_path,
   return reader;
 }
 
+int64_t get_replay_end_vtime(reader_t *reader) {
+  int64_t res = get_num_of_req(reader);
+  if (reader->cap_at_n_req > 1 && res > reader->cap_at_n_req) {
+    res = reader->cap_at_n_req;
+  }
+  return res;
+}
+
 /**
  * @brief read one request from trace file
  *

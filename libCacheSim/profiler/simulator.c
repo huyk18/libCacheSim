@@ -51,6 +51,7 @@ static void _simulate(gpointer data, gpointer user_data) {
   reader_t *source_reader =
       params->readers ? params->readers[idx] : params->reader;
   reader_t *cloned_reader = clone_reader(source_reader);
+  int64_t replay_end_vtime = get_replay_end_vtime(source_reader);
   request_t *req = new_request();
   cache_t *local_cache = params->caches[idx];
   strncpy(result[idx].cache_name, local_cache->cache_name,
@@ -61,6 +62,7 @@ static void _simulate(gpointer data, gpointer user_data) {
     reader_t *warmup_cloned_reader = clone_reader(params->warmup_reader);
     read_one_req(warmup_cloned_reader, req);
     while (req->valid) {
+      req->replay_end_vtime = replay_end_vtime;
       local_cache->get(local_cache, req);
       result[idx].n_warmup_req += 1;
       read_one_req(warmup_cloned_reader, req);
@@ -82,6 +84,7 @@ static void _simulate(gpointer data, gpointer user_data) {
     while (req->valid && (n_warmup < params->n_warmup_req ||
                           req->clock_time - start_ts < params->warmup_sec)) {
       req->clock_time -= start_ts;
+      req->replay_end_vtime = replay_end_vtime;
       local_cache->get(local_cache, req);
       n_warmup += 1;
       read_one_req(cloned_reader, req);
@@ -100,6 +103,7 @@ static void _simulate(gpointer data, gpointer user_data) {
     result[idx].n_req_cost += req->obj_cost;
 
     req->clock_time -= start_ts;
+    req->replay_end_vtime = replay_end_vtime;
     if (local_cache->get(local_cache, req) == false) {
       result[idx].n_miss++;
       result[idx].n_miss_byte += req->obj_size;

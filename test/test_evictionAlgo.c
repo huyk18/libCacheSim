@@ -354,6 +354,35 @@ static void test_Random(gconstpointer user_data) {
   test_cache_algorithm(user_data, &test_data_truth[19]);
 }
 
+static void test_SampleLRU(gconstpointer user_data) {
+  reader_t *reader = (reader_t *)user_data;
+  common_cache_params_t cc_params = {
+      .cache_size = CACHE_SIZE, .hashpower = 20, .default_ttl = DEFAULT_TTL};
+
+  cache_t *lru = create_test_cache("LRU", cc_params, reader, NULL);
+  cache_t *sample_lru = create_test_cache("SampleLRU", cc_params, reader, NULL);
+
+  cache_stat_t *res = simulate_at_multi_sizes_with_step_size(
+      reader, lru, STEP_SIZE, NULL, 0, 0, _n_cores(), false);
+  cache_stat_t *sample_res = simulate_at_multi_sizes_with_step_size(
+      reader, sample_lru, STEP_SIZE, NULL, 0, 0, _n_cores(), false);
+
+  for (uint64_t i = 0; i < CACHE_SIZE / STEP_SIZE; i++) {
+    g_assert_cmpuint(res[i].n_req, ==, sample_res[i].n_req);
+    double lru_ratio = (double)res[i].n_miss / (double)res[i].n_req;
+    double sample_ratio =
+        (double)sample_res[i].n_miss / (double)sample_res[i].n_req;
+    double diff = lru_ratio > sample_ratio ? lru_ratio - sample_ratio
+                                           : sample_ratio - lru_ratio;
+    g_assert_true(diff <= 0.08);
+  }
+
+  lru->cache_free(lru);
+  sample_lru->cache_free(sample_lru);
+  my_free(sizeof(cache_stat_t) * (CACHE_SIZE / STEP_SIZE), res);
+  my_free(sizeof(cache_stat_t) * (CACHE_SIZE / STEP_SIZE), sample_res);
+}
+
 static void test_S3FIFO(gconstpointer user_data) {
   test_cache_algorithm(user_data, &test_data_truth[20]);
 }
@@ -364,6 +393,36 @@ static void test_S3FIFOv0(gconstpointer user_data) {
 
 static void test_Sieve(gconstpointer user_data) {
   test_cache_algorithm(user_data, &test_data_truth[22]);
+}
+
+static void test_SampleSieve(gconstpointer user_data) {
+  reader_t *reader = (reader_t *)user_data;
+  common_cache_params_t cc_params = {
+      .cache_size = CACHE_SIZE, .hashpower = 20, .default_ttl = DEFAULT_TTL};
+
+  cache_t *sieve = create_test_cache("Sieve", cc_params, reader, NULL);
+  cache_t *sample_sieve =
+      create_test_cache("SampleSieve", cc_params, reader, NULL);
+
+  cache_stat_t *res = simulate_at_multi_sizes_with_step_size(
+      reader, sieve, STEP_SIZE, NULL, 0, 0, _n_cores(), false);
+  cache_stat_t *sample_res = simulate_at_multi_sizes_with_step_size(
+      reader, sample_sieve, STEP_SIZE, NULL, 0, 0, _n_cores(), false);
+
+  for (uint64_t i = 0; i < CACHE_SIZE / STEP_SIZE; i++) {
+    g_assert_cmpuint(res[i].n_req, ==, sample_res[i].n_req);
+    double sieve_ratio = (double)res[i].n_miss / (double)res[i].n_req;
+    double sample_ratio =
+        (double)sample_res[i].n_miss / (double)sample_res[i].n_req;
+    double diff = sieve_ratio > sample_ratio ? sieve_ratio - sample_ratio
+                                             : sample_ratio - sieve_ratio;
+    g_assert_true(diff <= 0.10);
+  }
+
+  sieve->cache_free(sieve);
+  sample_sieve->cache_free(sample_sieve);
+  my_free(sizeof(cache_stat_t) * (CACHE_SIZE / STEP_SIZE), res);
+  my_free(sizeof(cache_stat_t) * (CACHE_SIZE / STEP_SIZE), sample_res);
 }
 
 static void test_SLRU(gconstpointer user_data) {
@@ -423,9 +482,13 @@ int main(int argc, char *argv[]) {
   g_test_add_data_func("/libCacheSim/cacheAlgo_QDLP_FIFO", reader,
                        test_QDLP_FIFO);
   g_test_add_data_func("/libCacheSim/cacheAlgo_Random", reader, test_Random);
+  g_test_add_data_func("/libCacheSim/cacheAlgo_SampleLRU", reader,
+                       test_SampleLRU);
   g_test_add_data_func("/libCacheSim/cacheAlgo_S3FIFO", reader, test_S3FIFO);
   g_test_add_data_func("/libCacheSim/cacheAlgo_S3FIFOv0", reader,
                        test_S3FIFOv0);
+  g_test_add_data_func("/libCacheSim/cacheAlgo_SampleSieve", reader,
+                       test_SampleSieve);
   g_test_add_data_func("/libCacheSim/cacheAlgo_Sieve", reader, test_Sieve);
   g_test_add_data_func("/libCacheSim/cacheAlgo_SLRU", reader, test_SLRU);
   g_test_add_data_func("/libCacheSim/cacheAlgo_SR_LRU", reader, test_SR_LRU);

@@ -207,6 +207,10 @@ static inline reader_t *open_trace(
  */
 int64_t get_num_of_req(reader_t *reader);
 
+/* get the vtime of the last request in this replay (respecting cap_at_n_req)
+ */
+int64_t get_replay_end_vtime(reader_t *reader);
+
 /**
  * get the trace type
  * @param reader

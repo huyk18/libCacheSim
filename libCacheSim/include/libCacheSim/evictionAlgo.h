@@ -129,6 +129,15 @@ cache_t *QDLP_init(const common_cache_params_t ccache_params,
 cache_t *RandomLRU_init(const common_cache_params_t ccache_params,
                         const char *cache_specific_params);
 
+cache_t *SampleLRU_init(const common_cache_params_t ccache_params,
+                        const char *cache_specific_params);
+
+cache_t *SampleSieve_init(const common_cache_params_t ccache_params,
+                          const char *cache_specific_params);
+
+cache_t *SampleSieveIdealFilter_init(const common_cache_params_t ccache_params,
+                                     const char *cache_specific_params);
+
 cache_t *RandomTwo_init(const common_cache_params_t ccache_params,
                         const char *cache_specific_params);
 

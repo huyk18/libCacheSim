@@ -26,6 +26,7 @@ void simulate(reader_t *reader, cache_t *cache, int report_interval,
   uint64_t last_req_cnt = 0, last_miss_cnt = 0;
   uint64_t req_byte = 0, miss_byte = 0;
   double req_cost = 0, miss_cost = 0;
+  int64_t replay_end_vtime = get_replay_end_vtime(reader);
 
   read_one_req(reader, req);
   uint64_t start_ts = (uint64_t)req->clock_time;
@@ -41,6 +42,7 @@ void simulate(reader_t *reader, cache_t *cache, int report_interval,
     }
 
     req->clock_time -= start_ts;
+    req->replay_end_vtime = replay_end_vtime;
     if (req->clock_time <= warmup_sec) {
       cache->get(cache, req);
       read_one_req(reader, req);

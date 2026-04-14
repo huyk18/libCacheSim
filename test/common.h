@@ -225,6 +225,12 @@ static cache_t *create_test_cache(const char *alg_name,
     cache = LRUv0_init(cc_params, NULL);
   } else if (strcasecmp(alg_name, "Random") == 0) {
     cache = Random_init(cc_params, NULL);
+  } else if (strcasecmp(alg_name, "SampleLRU") == 0) {
+    cache = SampleLRU_init(cc_params, NULL);
+  } else if (strcasecmp(alg_name, "SampleSieve") == 0) {
+    cache = SampleSieve_init(cc_params, NULL);
+  } else if (strcasecmp(alg_name, "SampleSieveIdealFilter") == 0) {
+    cache = SampleSieveIdealFilter_init(cc_params, NULL);
   } else if (strcasecmp(alg_name, "MRU") == 0) {
     cache = MRU_init(cc_params, NULL);
     //  } else if (strcmp(alg_name, "LRU_K") == 0) {

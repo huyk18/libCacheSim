@@ -44,6 +44,9 @@ typedef struct request {
 
   int64_t next_access_vtime;
 
+  /* the replay end vtime in request-count domain */
+  int64_t replay_end_vtime;
+
   // this is used by key-value cache traces
   struct {
     uint64_t key_size : 16;
@@ -88,6 +91,7 @@ static inline request_t *new_request(void) {
   req->clock_time = 0;
   req->hv = 0;
   req->next_access_vtime = -2;
+  req->replay_end_vtime = -1;
   req->ttl = 0;
   return req;
 }
